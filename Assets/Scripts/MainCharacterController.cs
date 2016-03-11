@@ -9,6 +9,16 @@ public class MainCharacterController : MonoBehaviour {
 
 	Animator anim;
 
+    //Ground stuff
+    private bool grounded = false;
+    public Transform groundCheck;
+    private float groundRadius = 0.2f;
+    public LayerMask whatIsGround;
+
+    public float jumpForce = 700f;
+
+    private bool doubleJump = false;
+
 	// Use this for initialization
 	void Start () {
 		rb2D = GetComponent<Rigidbody2D>();
@@ -16,7 +26,12 @@ public class MainCharacterController : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void FixedUpdate () {
+	void FixedUpdate ()
+	{
+	    grounded = Physics2D.OverlapCircle(groundCheck.position, groundRadius, whatIsGround);
+        anim.SetBool("Ground", grounded);
+        anim.SetFloat("vSpeed", rb2D.velocity.y);
+
 		float move = Input.GetAxis ("Horizontal");
 
 		anim.SetFloat ("Speed", Mathf.Abs(move));
@@ -32,6 +47,20 @@ public class MainCharacterController : MonoBehaviour {
 		}
 
 	}
+
+    //Update read the input more accurately than Fixed update
+    void Update()
+    {
+        // don't do Input.GetKey, that's a bad practice
+        if ((grounded || !doubleJump) && Input.GetKeyDown(KeyCode.Space))
+        {
+            anim.SetBool("Ground", false);
+            rb2D.AddForce(new Vector2(0, jumpForce));
+
+            if(!doubleJump && !grounded)
+            	doubleJump = true;
+        }
+    }
 
 	void Flip(){
 		faceRight = !faceRight;
